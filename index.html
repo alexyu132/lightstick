@@ -15,7 +15,7 @@
                 img.onload = function() {
                     // Calculate new width while preserving aspect ratio
                     const scaleFactor = 144 / img.height;
-                    const newWidth = img.width * scaleFactor;
+                    const newWidth = Math.round(img.width * scaleFactor);
                     
                     const canvas = document.createElement('canvas');
                     canvas.width = newWidth;
@@ -25,12 +25,15 @@
                     
                     const imageData = ctx.getImageData(0, 0, newWidth, 144);
                     
-                    // Remove alpha channel and create new Uint8Array
+                    // Remove alpha channel, create new Uint8Array and reorder bytes to column-major
                     const rgbData = [];
-                    for (let i = 0; i < imageData.data.length; i += 4) {
-                        rgbData.push(imageData.data[i]);     // Red
-                        rgbData.push(imageData.data[i + 1]); // Green
-                        rgbData.push(imageData.data[i + 2]); // Blue
+                    for (let x = 0; x < newWidth; x++) {
+                        for (let y = 0; y < 144; y++) {
+                            const i = (y * newWidth + x) * 4;
+                            rgbData.push(imageData.data[i]);     // Red
+                            rgbData.push(imageData.data[i + 1]); // Green
+                            rgbData.push(imageData.data[i + 2]); // Blue
+                        }
                     }
 
                     const data = new Uint8Array(rgbData);

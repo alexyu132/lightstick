@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <input type="file" id="imageFile" name="imageFile">
+    <button onclick="processImage()">Process Image</button>
+
+    <script>
+        function processImage() {
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, img.width, img.height);
+                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                    const data = new Uint8Array(imageData.data.buffer);
+
+                    // Blob is used to construct a file-like object from raw data
+                    const blob = new Blob([data], { type: "octet/stream" });
+
+                    // Send the blob data to server using a POST request
+                    fetch('https://enricki046r7i.x.pipedream.net', {
+                        method: 'POST',
+                        body: blob
+                    })
+                    .then(response => response.text())
+                    .then(text => console.log(text))
+                    .catch(error => console.error('Error:', error));
+                };
+
+                img.src = event.target.result;
+            };
+
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>

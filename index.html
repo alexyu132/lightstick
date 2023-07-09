@@ -3,6 +3,7 @@
 <body>
     <input type="file" id="imageFile" name="imageFile">
     <button onclick="processImage()">Process Image</button>
+    <a id="downloadLink" style="display: none;">[Debug] Download Processed Image Bytes</a>
 
     <script>
         function processImage() {
@@ -50,6 +51,11 @@
                     .then(response => response.text())
                     .then(text => console.log(text))
                     .catch(error => console.error('Error:', error));
+
+                    const downloadLink = document.getElementById('downloadLink');
+                    downloadLink.href = URL.createObjectURL(blob);
+                    downloadLink.download = 'image_data.bin';
+                    downloadLink.style.display = 'block';
                 };
 
                 img.src = event.target.result;

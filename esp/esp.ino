@@ -39,11 +39,24 @@ void setup() {
 
   while (http.connected() && (stream->available()) && image_width < MAX_IMAGE_COLS) {
     for (int i = 0; i < NUM_LEDS; i++) {
-      stream->readBytes(image[image_width][i],3);
+      while (!stream->available()) {
+        delay(1);
+      }
+      image[image_width][i][0] = stream->read(); // R
+      while (!stream->available()) {
+        delay(1);
+      }
+      image[image_width][i][1] = stream->read(); // G
+      while (!stream->available()) {
+        delay(1);
+      }
+      image[image_width][i][2] = stream->read(); // B
+      
       if (!stream->available()) {
         break;
       }
     }
+   
     image_width++;
   }
 

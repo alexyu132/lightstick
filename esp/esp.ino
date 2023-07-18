@@ -37,27 +37,21 @@ void setup() {
   WiFiClient *stream = http.getStreamPtr();
   uint8_t value;
 
-  while (http.connected() && (stream->available()) && image_width < MAX_IMAGE_COLS) {
+  while (http.connected() && image_width < MAX_IMAGE_COLS) {
     for (int i = 0; i < NUM_LEDS; i++) {
-      while (!stream->available()) {
-        delay(1);
-      }
-      image[image_width][i][0] = stream->read(); // R
-      while (!stream->available()) {
-        delay(1);
-      }
-      image[image_width][i][1] = stream->read(); // G
-      while (!stream->available()) {
-        delay(1);
-      }
-      image[image_width][i][2] = stream->read(); // B
-      
-      if (!stream->available()) {
-        break;
-      }
+        uint8_t pixelData[3];
+        size_t numBytesRead = stream->readBytes(pixelData, 3);
+        if (numBytesRead != 3) {
+            // This might happen if we are at the end of the stream, or if there's a problem
+            break;
+        }
+        image[image_width][i][0] = pixelData[0]; // R
+        image[image_width][i][1] = pixelData[1]; // G
+        image[image_width][i][2] = pixelData[2]; // B
     }
-   
-    image_width++;
+    if (stream->available()) {
+        image_width++;
+    }
   }
 
   leds[0] = CRGB(255, 0, 0);

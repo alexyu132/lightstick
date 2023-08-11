@@ -4,7 +4,7 @@
 #include "SPIFFS.h"
 
 #define NUM_LEDS 91
-#define MAX_IMAGE_COLS 200
+#define MAX_IMAGE_COLS 260
 #define WIFI_SSID "lightstick"
 #define LED_PIN 16
 

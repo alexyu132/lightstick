@@ -14,24 +14,23 @@
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
-                    // Calculate new width while preserving aspect ratio
+                    // Keep in sync with num_leds and max_image_cols in ino file
                     const numLeds = 91;
-                    const scaleFactor = numLeds / img.height;
-                    const newWidth = Math.round(img.width * scaleFactor);
+                    const maxWidth = 200;
                     
                     const canvas = document.createElement('canvas');
-                    canvas.width = newWidth;
+                    canvas.width = maxWidth;
                     canvas.height = numLeds;
                     const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, newWidth, numLeds);
+                    ctx.drawImage(img, 0, 0, maxWidth, numLeds);
                     
-                    const imageData = ctx.getImageData(0, 0, newWidth, numLeds);
+                    const imageData = ctx.getImageData(0, 0, maxWidth, numLeds);
                     
                     // Remove alpha channel, create new Uint8Array and reorder bytes to column-major
                     const rgbData = [];
-                    for (let x = 0; x < newWidth; x++) {
+                    for (let x = 0; x < maxWidth; x++) {
                         for (let y = 0; y < numLeds; y++) {
-                            const i = (y * newWidth + x) * 4;
+                            const i = (y * maxWidth + x) * 4;
                             rgbData.push(imageData.data[i]);     // Red
                             rgbData.push(imageData.data[i + 1]); // Green
                             rgbData.push(imageData.data[i + 2]); // Blue
@@ -51,11 +50,6 @@
                     .then(response => response.text())
                     .then(text => console.log(text))
                     .catch(error => console.error('Error:', error));
-
-                    const downloadLink = document.getElementById('downloadLink');
-                    downloadLink.href = URL.createObjectURL(blob);
-                    downloadLink.download = 'image_data.bin';
-                    downloadLink.style.display = 'block';
                 };
 
                 img.src = event.target.result;

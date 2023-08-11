@@ -21,8 +21,6 @@ CRGB leds[NUM_LEDS];
 AsyncWebServer server(80);
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Starting system");
   memset(image, 0, sizeof(image));
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -34,26 +32,15 @@ void setup() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(SPIFFS, "/index.html");
   });
-  server.on("/upload", HTTP_POST, [](AsyncWebServerRequest * request) {
-    // Set the handler for binary data uploads
-    request->send(200);
-  }, handleBinaryUpload);
+  server.on("/upload", HTTP_POST, handleInitialResponse, nullptr, handleBinaryUpload);
 
   server.begin();
-
-
-  leds[0] = CRGB(255, 0, 0);
-  FastLED.setBrightness(35);
-  FastLED.show();
-  Serial.println("Finished the setup");
 }
 
-void handleBinaryUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
-  Serial.println("Handling the binary upload");
+void handleBinaryUpload(AsyncWebServerRequest* request, uint8_t* data, size_t len, size_t index, size_t total) {
   if (!index) {
     // Handle the start of the upload
     // You can create/open a file here to save the uploaded data
-    Serial.println("Upload started");
     dataArrayIndex = 0;  // Reset the array index
   }
 
@@ -61,23 +48,26 @@ void handleBinaryUpload(AsyncWebServerRequest *request, String filename, size_t 
     // Handle incoming binary data
     // data is the data buffer
     // len is the size of the current chunk
-    Serial.println("Data incoming");
     if (dataArrayIndex + len <= sizeof(image)) {
       // Copy the incoming data into the array
       memcpy(image + dataArrayIndex, data, len);
       dataArrayIndex += len;
     } else {
-      Serial.println("Array is full, data will be truncated");
     }
   }
 
-  if (final) {
+  if (index >= total) {
     // Handle the end of the upload
     // Close the file and perform any necessary processing
-    Serial.println("Upload finished");
     request->send(200, "text/plain", "File upload successful");
+    curr_render_col = 0;
   }
 }
+
+void handleInitialResponse(AsyncWebServerRequest *request) {  
+  request->send(200);
+}
+
 
 void setLedsFromImageCol(unsigned int col) {
   unsigned int offset = col * BYTES_PER_COLUMN;
@@ -95,10 +85,10 @@ void setLedsFromImageCol(unsigned int col) {
 
 
 void loop() {
-  if (curr_render_col == image_width - 1) {
+  if (curr_render_col == MAX_IMAGE_COLS - 1) {
     FastLED.clear();
     FastLED.show();
-    delay(500);
+    delay(200);
     curr_render_col = 0;
   }
 

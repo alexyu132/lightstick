@@ -2,8 +2,7 @@
 <html>
 <body>
     <input type="file" id="imageFile" name="imageFile">
-    <button onclick="processImage()">Process Image</button>
-    <a id="downloadLink" style="display: none;">[Debug] Download Processed Image Bytes</a>
+    <button onclick="processImage()">Upload Image</button>
 
     <script>
         function processImage() {
@@ -44,7 +43,7 @@
                     const blob = new Blob([data], { type: "octet/stream" });
 
                     // Send the blob data to server using a POST request
-                    fetch('https://enricki046r7i.x.pipedream.net', {
+                    fetch('/upload', {
                         method: 'POST',
                         body: blob
                     })
@@ -60,8 +59,6 @@
 
                 img.src = event.target.result;
             };
-
-            reader.readAsDataURL(file);
         }
     </script>
 </body>

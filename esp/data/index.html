@@ -2,7 +2,8 @@
 <html>
 <body>
     <input type="file" id="imageFile" name="imageFile">
-    <button onclick="processImage()">Upload Image</button>
+    <button onclick="processImage()">Process Image</button>
+    <a id="downloadLink" style="display: none;">[Debug] Download Processed Image Bytes</a>
 
     <script>
         function processImage() {
@@ -40,7 +41,7 @@
                     const data = new Uint8Array(rgbData);
 
                     // Blob is used to construct a file-like object from raw data
-                    const blob = new Blob([data], { type: "octet/stream" });
+                    const blob = new Blob([data], { type: 'application/octet-stream' });
 
                     // Send the blob data to server using a POST request
                     fetch('/upload', {
@@ -59,6 +60,8 @@
 
                 img.src = event.target.result;
             };
+
+            reader.readAsDataURL(file);
         }
     </script>
 </body>

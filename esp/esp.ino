@@ -1,11 +1,11 @@
 #include "WiFi.h"
-#include "HTTPClient.h"
 #include "FastLED.h"
+#include "ESPAsyncWebSrv.h"
+#include "SPIFFS.h"
 
 #define NUM_LEDS 91
 #define MAX_IMAGE_COLS 200
-#define WIFI_SSID "ssid"
-#define WIFI_PASSWORD "password"
+#define WIFI_SSID "lightstick"
 #define LED_PIN 16
 
 #define BYTES_PER_COLUMN NUM_LEDS*3
@@ -17,27 +17,24 @@ size_t image_width = 0;
 unsigned int curr_render_col = 0;
 CRGB leds[NUM_LEDS];
 
+AsyncWebServer server(80);
+
 void setup() {
   memset(image, 0, sizeof(image));
 
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
 
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(100);
-    leds[0] = CRGB::Red;
-    FastLED.show();
-    delay(100);
-    leds[0] = CRGB::Black;
-    FastLED.show();
-  }
+  WiFi.softAP(WIFI_SSID);
+
+  SPIFFS.begin(true);
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+    request->send(SPIFFS, "/index.html");
+  });
+
+  server.begin();
 
   delay(3000);
-
-  HTTPClient http;
-  http.begin("http://antlimain.s3.us-west-2.amazonaws.com/neon.bin");
-
-  int httpCode = http.GET();
 
   WiFiClient *stream = http.getStreamPtr();
 
@@ -60,8 +57,8 @@ void setLedsFromImageCol(unsigned int col) {
   uint8_t pixel = 0;
 
   // Each group of 3 bytes represents R,G,B values for a pixel
-  for (int i = 0; i < NUM_LEDS * 3; i+=3) {
-    leds[pixel] = CRGB(image[offset+i],image[offset+i+1],image[offset+i+2]);
+  for (int i = 0; i < NUM_LEDS * 3; i += 3) {
+    leds[pixel] = CRGB(image[offset + i], image[offset + i + 1], image[offset + i + 2]);
     pixel++;
   }
   FastLED.show();
@@ -75,9 +72,9 @@ void loop() {
     delay(500);
     curr_render_col = 0;
   }
-  
+
   setLedsFromImageCol(curr_render_col);
-  
+
   curr_render_col++;
   delay(50);
 }
